@@ -42,6 +42,8 @@ int main(){
         {
         case 0:
             //quit this system
+            //应该是退出时保存信息
+            wm.saveData();
             break;
         case 1:
             //添加员工，并且保存到文件中

@@ -6,9 +6,12 @@
 */
 
 #include <iostream>
+#include <string>
 
 using namespace std;
 
 void cinNum(int & num, const string & coutTip);
+
+void cinStr(string & str, const string & coutTip);
 
 #endif

@@ -24,6 +24,7 @@ public:
     void showMenu();    //显示菜单函数
     void addNewStaff(); //添加新员工
     void saveData();    //退出时存储数据
+    void showStaffInfo();   //显示所有职工的信息
 private:
     int staffNum;   //当前有多少个在职员工
     abstractWorker ** staffArray;   //保存信息的指针，指向abstractWorker*[]数组

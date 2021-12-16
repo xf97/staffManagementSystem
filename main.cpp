@@ -50,7 +50,8 @@ int main(){
             wm.addNewStaff();
             break;
         case 2:
-            //do something
+            //显示所有员工的信息
+            wm.showStaffInfo();
             break;
         case 3:
             //do something

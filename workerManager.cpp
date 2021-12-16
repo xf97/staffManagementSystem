@@ -31,7 +31,30 @@ workerManager::workerManager(){
             //要读取文件并回调指针
             ifs.seekg(0, ios::beg); //读取位置调回首位置
             int num = getStaffNum();    //获取当前已存储了多少个员工的记录，方便申请空间
-            cout<<num<<endl;
+            staffNum = num; //初始化长度
+            //申请空间
+            staffArray = new abstractWorker * [staffNum];
+            //开始赋值
+            int id = 0;
+            string name = "";
+            int departmentId = 0;
+            for(int i = 0; i < staffNum; ++ i){
+                ifs>>id>>name>>departmentId;
+                switch (departmentId)
+                {
+                case 1:
+                    staffArray[i] = new employee(id, name, departmentId);
+                    break;
+                case 2:
+                    staffArray[i] = new manager(id, name, departmentId);
+                    break;
+                case 3:
+                    staffArray[i] = new boss(id, name, departmentId);
+                    break;
+                }
+            }
+            dataFileEmpty = false;
+            cout<<"Already get "<<staffNum<<" staff(s) information.\n";
             ifs.close();
         }
     }
@@ -162,4 +185,16 @@ void workerManager::saveData(){
     ofs.close();
     //提示信息
     cout<<"All data has been saved.\n";
+}
+
+void workerManager::showStaffInfo(){
+    if(staffNum > 0){
+        for(int i = 0; i < staffNum; ++ i){
+            staffArray[i]->showInfo();  //多态函数
+        }
+    }
+    else{
+        cout<<"No staff have been recorded.\n";
+    }
+    return;
 }

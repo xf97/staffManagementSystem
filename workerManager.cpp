@@ -40,6 +40,8 @@ workerManager::workerManager(){
             int departmentId = 0;
             for(int i = 0; i < staffNum; ++ i){
                 ifs>>id>>name>>departmentId;
+                //插入id
+                ids.insert(id);
                 switch (departmentId)
                 {
                 case 1:
@@ -62,11 +64,23 @@ workerManager::workerManager(){
 
 //析构函数
 workerManager::~workerManager(){
-    //要释放堆区数据
-    if(staffArray != nullptr){
-        delete [] staffArray;
-        staffArray = nullptr;
+    //要释放堆区数据        
+    //释放每一个指针占据的空间
+    for(int i = 0; i < staffNum; ++ i){
+        if(staffArray[i] != nullptr){
+            delete staffArray[i];   //释放空间
+            staffArray[i] = nullptr;
+        }
+        else{
+            continue;
+        }
     }
+    //释放二维指针
+    delete [] staffArray;
+    staffArray = nullptr;
+    //数据置空
+    staffNum = 0;
+    dataFileEmpty = true;
 }
 
 //返回dataFile文件中已记录的员工数量
@@ -125,6 +139,10 @@ void workerManager::addNewStaff(){
             int departmentId = 0;
 
             cinNum(id, "Please enter the #" + to_string(i + 1) + " staff's id: ");
+            while(count(ids.begin(), ids.end(), id) >= 1){
+                //出现重复id，重新输入
+                cinNum(id, "Already have this id, please enter the #" + to_string(i + 1) + " staff's id: ");
+            }
             cinStr(name, "Please enter the #" + to_string(i + 1) + " staff's name: ");
             cinNum(departmentId, "Please select the #" + to_string(i + 1) + " department id " +
                    "(1- Normal staff, 2-Manager, 3-Boss): ");
@@ -145,6 +163,8 @@ void workerManager::addNewStaff(){
                 cout<<"Wrong department Id input! please check your input and terminal this operation.\n";
                 break;
             }
+            //填入新id
+            ids.insert(id);
             //指针指向
             //注意不要覆盖原数据
             newStaffArray[staffNum + i] = newStaff;
@@ -187,6 +207,58 @@ void workerManager::saveData(){
     cout<<"All data has been saved.\n";
 }
 
+//删除职工的信息
+void workerManager::deleteStaff(){
+    int id = 0;
+    //先接收要删除的职工的id
+    cinNum(id, "please input the staff' id that you need to delete: ");
+    //移到最后，逻辑置空
+    int index = isThisStaffExist(id);
+    if(index == -1){
+        cout<<"The specify staff that you need to delete is not existence.\n";
+        return;
+    }
+    else{
+        //把要删除的放到最后去
+        abstractWorker * tempPtr = nullptr;
+        tempPtr = staffArray[index];
+        staffArray[index] = staffArray[staffNum - 1];
+        staffArray[staffNum - 1] = tempPtr;
+        //id释放
+        ids.erase(id);  //按值删除
+        -- staffNum;    //指针前移
+        //排序
+        sortStaff(1);   //默认id升序
+        cout<<"Already delete #"<<(id)<<" staff's information.\n";
+        return;
+    }
+}
+
+void workerManager::sortStaff(int){    
+    if(staffNum <= 0){
+        return;
+    }
+    else{
+        sort(staffArray, staffArray + staffNum, abstractWorkerPtrCmpAsc);
+        cout<<"Sort staff order is done.\n";
+        return;
+    }
+}
+
+//判断职工是否存在的函数
+int workerManager::isThisStaffExist(const int _id){
+    int result = -1;
+    for(int i = 0; i < staffNum; ++ i){
+        if(staffArray[i]->id == _id){
+            return i;
+        }
+        else{
+            continue;
+        }
+    }
+    return result;
+}
+
 void workerManager::showStaffInfo(){
     if(staffNum > 0){
         for(int i = 0; i < staffNum; ++ i){
@@ -197,4 +269,172 @@ void workerManager::showStaffInfo(){
         cout<<"No staff have been recorded.\n";
     }
     return;
+}
+
+//按职工id修改职工信息函数
+void workerManager::modifyStaff(){
+    if(staffNum <= 0){
+        cout<<"No staff have been recorded, so can't modify what.\n";
+        return;
+    }
+    else{
+        int id = 0;
+        cinNum(id, "please input the staff' id that you need to modify: ");
+        int index = isThisStaffExist(id);
+        if(index == -1){
+            cout<<"The staff you specify to modify is not existence.\n";
+            return;
+        }
+        else{
+            //要释放原来的指针
+            delete staffArray[index];
+            staffArray[index] = nullptr;
+            //释放id
+            ids.erase(id);
+            //填入数据
+            int newId = -1;
+            string name = "";   
+            int departmentId = -1; 
+            cinNum(id, "Please enter the #" + to_string(id) + " staff's new id: ");
+            while(count(ids.begin(), ids.end(), id) >= 1){
+                //出现重复id，重新输入
+                cinNum(id, "Already have this id, please enter the original #" + to_string(id) + " staff's id: ");
+            }
+            cinStr(name, "Please enter the #" + to_string(id) + " staff's new name: ");
+            cinNum(departmentId, "Please select the #" + to_string(id) + " new department id " +
+                   "(1- Normal staff, 2-Manager, 3-Boss): ");
+            switch (departmentId)
+            {
+                case 1:
+                    staffArray[index] = new employee(id, name, departmentId);
+                    break;
+                case 2:
+                    staffArray[index] = new manager(id, name, departmentId);
+                    break;
+                case 3:
+                    staffArray[index] = new boss(id, name, departmentId);
+                    break;
+            }
+            //填入id
+            ids.insert(id);
+            cout<<"Already modified the original #"<<(id)<<" staff's information.\n";
+            return;
+        }
+    }
+}
+
+void workerManager::findStaff(){
+    if(staffNum <= 0){
+        cout<<"No staff have been recorded, so can't find what.\n";
+        return;
+    }
+    else{
+        string keyword = "";    //查询的关键字
+        //尝试转成int
+        cinStr(keyword, "please input the staff' id or name that you need to query: ");
+        try
+        {
+            // stringstream ss;
+            // int id = 0;
+            // ss<<keyword;    //读取字符串
+            // ss>>id; //输入到数字中，不异常的话开查
+            // cout<<id<<endl;
+            int id = stoi(keyword); //不是数字的话就报异常
+            int index = isThisStaffExist(id);
+            if(index == -1){
+                cout<<"The staff you specify to query is not existence.\n";
+                return;
+            }
+            else{
+                staffArray[index]->showInfo();  //直接调用就好
+            }
+        }
+        catch(const std::exception& e)
+        {
+            //std::cerr << e.what() << '\n';
+            cout<<"enable name query.\n";
+            //启用名字查询
+            //注意，名字可能重名
+            vector<int> indexs = isThisStaffExist(keyword);            
+            if(indexs.empty()){
+                cout<<"No staff you specify to query is not existence.\n";
+                return;
+            }
+            else{
+                for(int i : indexs){
+                    staffArray[i]->showInfo();  //调用重载函数
+                }
+            }
+        }
+        return;
+    }
+}
+
+vector<int> workerManager::isThisStaffExist(const string & _name){
+    vector<int> result;
+    for(int i = 0; i < staffNum; ++ i){
+        if(staffArray[i]->name == _name){
+            result.push_back(i);
+        }
+        else{
+            continue;
+        }
+    }
+    return result;
+}
+
+void workerManager::sortStaff(){
+    if(staffNum <= 0){
+        cout<<"No staff have been recorded, so can't sort what.\n";
+        return;
+    }
+    else{
+        int sortType = 1;   //排序类型，1-id升序，2-id降序
+        do{
+            cinNum(sortType, "Please choose a sort type (1-ascending, 2-escending): ");
+        } while(sortType != 1 && sortType != 2);    //要求只能是1或2
+        if(sortType == 1){
+            sort(staffArray, staffArray + staffNum, abstractWorkerPtrCmpAsc);
+        }
+        else{
+            sort(staffArray, staffArray + staffNum, abstractWorkerPtrCmpEsc);
+        }
+        cout<<"Sort staff order is done.\n";
+        return;
+    }
+}
+
+void workerManager::cleanData(){
+    int retype = 2;
+    do{
+        cinNum(retype, "Be sure to clean all data (1-yes, 2-no): ");
+    } while(retype != 1 && retype != 2);
+    if(retype == 1){
+        //先删掉文件，其实不删直接写回应该写是覆盖
+        ofstream ofs(DATA_FILE_PATH, ios::trunc);
+        ofs.close();
+
+        //释放每一个指针占据的空间
+        for(int i = 0; i < staffNum; ++ i){
+            if(staffArray[i] != nullptr){
+                delete staffArray[i];   //释放空间
+                staffArray[i] = nullptr;
+            }
+            else{
+                continue;
+            }
+        }
+        //释放二维指针
+        delete [] staffArray;
+        staffArray = nullptr;
+        //数据置空
+        staffNum = 0;
+        dataFileEmpty = true;
+        cout<<"Clean all data -- done!\n";
+        return;
+
+    }
+    else{
+        return;
+    }
 }

@@ -33,3 +33,13 @@ void cinStr(string & str, const string & coutTip){
         break;
     }
 }
+
+bool abstractWorkerPtrCmpAsc(abstractWorker * abw1, abstractWorker * abw2){
+    //按id升序
+    return abw1->id < abw2->id;
+}
+
+bool abstractWorkerPtrCmpEsc(abstractWorker * abw1, abstractWorker * abw2){
+    //按id降序
+    return abw1->id > abw2->id;
+}

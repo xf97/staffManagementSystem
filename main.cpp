@@ -22,7 +22,7 @@ viiii. 清空所有信息，包括文件，要提供再次确认功能
 int main(){
     //cout<<"Hello world.\n";
     //showMenu();
-    //声明控制类
+    //列出控制类
     workerManager wm;
     int choice = -1;   //用户选择
     while(choice != 0){
@@ -54,25 +54,31 @@ int main(){
             wm.showStaffInfo();
             break;
         case 3:
-            //do something
+            //删除员工的信息
+            wm.deleteStaff();
             break;
         case 4:
-            //do something
+            //修改员工的信息
+            wm.modifyStaff();
             break;
         case 5:
-            //do something
+            //查找并列出职工信息
+            wm.findStaff();
             break;
         case 6:
-            //do something
+            //数据排序
+            wm.sortStaff();
             break;
         case 7:
-            //do something
+            //清空所有数据
+            wm.cleanData();
             break;
         default:
-            system("cls");
             cout<<"you have entered the wrong number, please enter again.\n";
             break;
         }
+        system("pause");
+        system("cls");
     }
     cout<<"Already quit the system!\n";
     return 0;
